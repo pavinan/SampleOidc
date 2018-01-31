@@ -1,1 +1,3 @@
 Sample
+
+SET ASPNETCORE_ENVIRONMENT=Development
