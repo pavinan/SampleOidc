@@ -1,0 +1,18 @@
+﻿{
+  "ConnectionString": "Server=(localdb)\\SQLDBLive;Database=LetterHub.Services.AddressDB;User Id=sa;Password=Neeku123#;",
+  "IdentityUrl": "http://localhost:5105",
+  
+  "Logging": {
+    "IncludeScopes": false,
+    "Debug": {
+      "LogLevel": {
+        "Default": "Warning"
+      }
+    },
+    "Console": {
+      "LogLevel": {
+        "Default": "Warning"
+      }
+    }
+  }
+}

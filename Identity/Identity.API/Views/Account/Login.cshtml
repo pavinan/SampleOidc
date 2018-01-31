@@ -1,0 +1,36 @@
+@model SampleOidc.Identity.API.Models.Account.LoginViewModel
+
+<div>
+    <div>
+        <div asp-validation-summary="All" class="text-danger"></div>
+    </div>
+    <div>
+    <form style="max-width:500px" class="mx-auto" asp-controller="Account"  asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div class="form-group">
+            <label asp-for="EmailAddress"></label>
+            <input class="form-control" asp-for="EmailAddress"/>
+            <span asp-validation-for="EmailAddress" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Password"></label>
+            <input class="form-control" asp-for="Password"/>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="form-check">
+            
+            <label class="form-check-label" asp-for="RememberMe">
+                <input class="form-check-input" asp-for="RememberMe"/>
+                Remember Me
+            </label>
+            
+            <span asp-validation-for="RememberMe" class="text-danger"></span>
+        </div>        
+        <button class="btn btn-primary btn-block" type="submit">Login</button>        
+    </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
