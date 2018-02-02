@@ -6,7 +6,7 @@ import {
   OidcSecurityService,
   OpenIDImplicitFlowConfiguration,
   OidcConfigService,
-  AuthWellKnownEndpoints
+  AuthWellKnownEndpoints,
 } from 'angular-auth-oidc-client';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -51,7 +51,7 @@ export class AppModule {
         openIDImplicitFlowConfiguration.response_type = 'id_token token';
         openIDImplicitFlowConfiguration.scope = 'openid profile contacts';
         openIDImplicitFlowConfiguration.post_logout_redirect_uri = 'http://localhost:5104/unauthorized';
-        openIDImplicitFlowConfiguration.start_checksession = false;
+        openIDImplicitFlowConfiguration.start_checksession = true;
         openIDImplicitFlowConfiguration.silent_renew = false;
         openIDImplicitFlowConfiguration.post_login_route = '/';
         // HTTP 403
@@ -63,7 +63,7 @@ export class AppModule {
         // id_token C8: The iat Claim can be used to reject tokens that were issued too far away from the current time,
         // limiting the amount of time that nonces need to be stored to prevent attacks.The acceptable range is Client specific.
         openIDImplicitFlowConfiguration.max_id_token_iat_offset_allowed_in_seconds = 10;
-
+        openIDImplicitFlowConfiguration.storage = localStorage;
         const authWellKnownEndpoints = new AuthWellKnownEndpoints();
         authWellKnownEndpoints.setWellKnownEndpoints(this.oidcConfigService.wellKnownEndpoints);
 
