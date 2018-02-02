@@ -12,6 +12,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using SampleOidc.Contacts.API.Services;
+using Microsoft.AspNetCore.Http;
+using Swashbuckle.AspNetCore.Swagger;
+using SampleOidc.Contacts.API.Filters;
 
 namespace SampleOidc.Contacts.API
 {
@@ -21,6 +28,26 @@ namespace SampleOidc.Contacts.API
         {
             Configuration = configuration;
             LoggerFactory = loggerFactory;
+            CreateMaps();
+        }
+
+        private void CreateMaps()
+        {
+            Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<DTOs.AddContactDTO, Models.Contact>();
+                cfg.CreateMap<DTOs.UpdateContactDTO, Models.Contact>();
+
+                cfg.CreateMap<DTOs.AddAddressDTO, Models.Address>();
+                cfg.CreateMap<DTOs.UpdateAddressDTO, Models.Address>();
+
+                cfg.CreateMap<DTOs.AddEmailDTO, Models.Email>();
+                cfg.CreateMap<DTOs.UpdateEmailDTO, Models.Email>();
+
+                cfg.CreateMap<DTOs.AddPhoneDTO, Models.Phone>();
+                cfg.CreateMap<DTOs.UpdatePhoneDTO, Models.Phone>();
+
+            });
         }
 
         public IConfiguration Configuration { get; }
@@ -30,9 +57,14 @@ namespace SampleOidc.Contacts.API
         public void ConfigureServices(IServiceCollection services)
         {
 
+
+
+
             services.AddDbContext<ContactsDbContext>(options =>
              options.UseSqlServer(Configuration["ConnectionString"]));
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IdentityService>();
             services.AddTransient<ContactsRepository>();
 
             ConfigureAuthService(services);
@@ -46,11 +78,47 @@ namespace SampleOidc.Contacts.API
                                 .AllowCredentials());
                         });
 
-            services.AddMvc().AddJsonOptions(options =>
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new AuthorizeFilter(policy));
+            })
+            .AddJsonOptions(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
+
+            services.AddSwaggerGen(options =>
+            {
+                options.DescribeAllEnumsAsStrings();
+                
+                options.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
+                {
+                    Title = "Contacts HTTP API",
+                    Version = "v1",
+                    Description = "The Contacts Service HTTP API"
+                });
+
+                options.AddSecurityDefinition("oauth2", new OAuth2Scheme
+                {
+                    Type = "oauth2",
+                    Flow = "implicit",
+                    AuthorizationUrl = $"{Configuration.GetValue<string>("IdentityUrl")}/connect/authorize",
+                    TokenUrl = $"{Configuration.GetValue<string>("IdentityUrl")}/connect/token",
+                    Scopes = new Dictionary<string, string>()
+                    {
+                        { "contacts", "Contacts API" }
+                    }
+                });
+
+                options.OperationFilter<AuthorizeCheckOperationFilter>();
+            });
+
         }
+
 
 
 
@@ -65,6 +133,13 @@ namespace SampleOidc.Contacts.API
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseMvc();
+
+            app.UseSwagger()
+               .UseSwaggerUI(c =>
+               {
+                   c.SwaggerEndpoint($"{string.Empty}/swagger/v1/swagger.json", "Contacts.API V1");
+                   c.ConfigureOAuth2("contactsswaggerui", "", "", "Contacts Swagger UI");
+               });
         }
 
 
